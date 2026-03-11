@@ -53,7 +53,7 @@ public class BoxRenderManager {
 
                 matrices.push();
 
-                VertexConsumer lineConsumer = context.consumers().getBuffer(RenderLayers.lines());
+                VertexConsumer lineConsumer = context.consumers().getBuffer(RenderLayer.getLines());
 
                 Box box = new Box(
                         soundBox.minX, soundBox.minY, soundBox.minZ,
@@ -65,8 +65,7 @@ public class BoxRenderManager {
                         lineConsumer,
                         VoxelShapes.cuboid(box),
                         -camPos.x, -camPos.y, -camPos.z,
-                        color,
-                        2.0f
+                        color
                 );
                 matrices.pop();
 

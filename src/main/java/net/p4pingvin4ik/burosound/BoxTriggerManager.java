@@ -36,7 +36,7 @@ public class BoxTriggerManager {
         PlayerEntity player = client.player;
         if (player == null) return;
 
-        Identifier currentDim = player.getEntityWorld().getRegistryKey().getValue();
+        Identifier currentDim = player.getWorld().getRegistryKey().getValue();
 
         if (lastDimension != null && !lastDimension.equals(currentDim)) {
             stopAll(client);

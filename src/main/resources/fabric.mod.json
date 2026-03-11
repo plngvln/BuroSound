@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "burosound",
+  "version": "${version}",
+  "name": "BuroSound",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/burosound/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.p4pingvin4ik.burosound.client.BurosoundClient"
+    ],
+    "main": [
+      "net.p4pingvin4ik.burosound.Burosound"
+    ]
+  },
+  "mixins": [
+    "burosound.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": ">=1.21.6 <=1.21.11"
+  }
+}

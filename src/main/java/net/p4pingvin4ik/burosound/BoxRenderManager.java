@@ -1,6 +1,6 @@
 package net.p4pingvin4ik.burosound;
 
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.*;
@@ -27,11 +27,11 @@ public class BoxRenderManager {
 
             if (!isRendering || BoxTriggerManager.activeBoxes.isEmpty() || client.world == null) return;
 
-            MatrixStack matrices = context.matrices();
+            MatrixStack matrices = context.matrixStack();
             if (matrices == null) return;
 
             Camera camera = client.gameRenderer.getCamera();
-            Vec3d camPos = camera.getCameraPos();
+            Vec3d camPos = camera.getPos();
 
             Identifier currentDim = client.world.getRegistryKey().getValue();
             TextRenderer textRenderer = client.textRenderer;
@@ -53,7 +53,7 @@ public class BoxRenderManager {
 
                 matrices.push();
 
-                VertexConsumer lineConsumer = context.consumers().getBuffer(RenderLayers.lines());
+                VertexConsumer lineConsumer = context.consumers().getBuffer(RenderLayer.getLines());
 
                 Box box = new Box(
                         soundBox.minX, soundBox.minY, soundBox.minZ,
@@ -65,8 +65,7 @@ public class BoxRenderManager {
                         lineConsumer,
                         VoxelShapes.cuboid(box),
                         -camPos.x, -camPos.y, -camPos.z,
-                        color,
-                        2.0f
+                        color
                 );
                 matrices.pop();
 

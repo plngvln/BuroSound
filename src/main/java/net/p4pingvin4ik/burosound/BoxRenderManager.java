@@ -103,6 +103,64 @@ public class BoxRenderManager {
                 );
                 matrices.pop();
             }
+
+            for (BlockTrigger trigger : BoxTriggerManager.blockTriggers) {
+                if (!trigger.box.dimension.equals(currentDim)) continue;
+
+                matrices.push();
+
+                VertexConsumer lineConsumer = context.consumers().getBuffer(RenderLayer.getLines());
+
+                Box box = new Box(
+                        trigger.x, trigger.y, trigger.z,
+                        trigger.x + 1, trigger.y + 1, trigger.z + 1
+                );
+
+                int color = 0xFF00FFFF;
+
+                VertexRendering.drawOutline(
+                        matrices,
+                        lineConsumer,
+                        VoxelShapes.cuboid(box),
+                        -camPos.x, -camPos.y, -camPos.z,
+                        color
+                );
+                matrices.pop();
+
+                matrices.push();
+                double centerX = trigger.x + 0.5;
+                double centerY = trigger.y + 0.5;
+                double centerZ = trigger.z + 0.5;
+
+                matrices.translate(
+                        (float)(centerX - camPos.x),
+                        (float)(centerY - camPos.y),
+                        (float)(centerZ - camPos.z)
+                );
+
+                matrices.multiply(camera.getRotation());
+
+                float scale = 0.025f;
+                matrices.scale(scale, -scale, scale);
+
+                Matrix4f modelViewMatrix = matrices.peek().getPositionMatrix();
+                String text = trigger.box.soundIdName;
+                float renderX = -textRenderer.getWidth(text) * 0.5f;
+
+                textRenderer.draw(
+                        text,
+                        renderX,
+                        0,
+                        0xFFFFFFFF,
+                        false,
+                        modelViewMatrix,
+                        context.consumers(),
+                        TextRenderer.TextLayerType.NORMAL,
+                        0,
+                        0xF000F0
+                );
+                matrices.pop();
+            }
         });
     }
 }

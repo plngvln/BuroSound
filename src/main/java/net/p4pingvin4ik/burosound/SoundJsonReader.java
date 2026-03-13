@@ -30,6 +30,7 @@ public class SoundJsonReader {
         LOGGER.info("starting sound dump");
 
         BoxTriggerManager.activeBoxes.clear();
+        BoxTriggerManager.blockTriggers.clear();
         BoxTriggerManager.nextSoundMap.clear();
 
         ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
@@ -42,7 +43,7 @@ public class SoundJsonReader {
             }
 
             try (InputStream inputStream = resource.getInputStream();
-                InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+                 InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                 JsonObject rootObject = JsonParser.parseReader(reader).getAsJsonObject();
 
                 for (Map.Entry<String, JsonElement> entry : rootObject.entrySet()) {
@@ -90,6 +91,53 @@ public class SoundJsonReader {
                                         else if (firstElement.isJsonPrimitive() && firstElement.getAsJsonPrimitive().isNumber()) {
                                             registerBox(eventName, boxArray, dimensionId, isExit, playWhileInside, ignoreNoteBlocks, allowOverlap);
                                         }
+                                    }
+                                }
+
+                                if (sObj.has("block_trigger") || sObj.has("blockTrigger")) {
+                                    JsonElement blockElem = sObj.has("block_trigger") ? sObj.get("block_trigger") : sObj.get("blockTrigger");
+
+                                    int x = 0;
+                                    int y = 0;
+                                    int z = 0;
+                                    String blockIdStr = null;
+
+                                    if (blockElem.isJsonArray()) {
+                                        JsonArray arr = blockElem.getAsJsonArray();
+                                        if (arr.size() >= 4) {
+                                            x = arr.get(0).getAsInt();
+                                            y = arr.get(1).getAsInt();
+                                            z = arr.get(2).getAsInt();
+                                            blockIdStr = arr.get(3).getAsString();
+                                        }
+                                    } else if (blockElem.isJsonObject()) {
+                                        JsonObject obj = blockElem.getAsJsonObject();
+                                        if (obj.has("x") && obj.has("y") && obj.has("z") && obj.has("block")) {
+                                            x = obj.get("x").getAsInt();
+                                            y = obj.get("y").getAsInt();
+                                            z = obj.get("z").getAsInt();
+                                            blockIdStr = obj.get("block").getAsString();
+                                        }
+                                    }
+
+                                    if (blockIdStr != null) {
+                                        if (!blockIdStr.contains(":")) blockIdStr = "minecraft:" + blockIdStr;
+                                        Identifier blockId = Identifier.of(blockIdStr);
+
+                                        SoundBox blockBox = new SoundBox(
+                                                eventName,
+                                                x, y, z,
+                                                x, y, z,
+                                                dimensionId,
+                                                isExit,
+                                                playWhileInside,
+                                                ignoreNoteBlocks,
+                                                allowOverlap
+                                        );
+
+                                        BoxTriggerManager.blockTriggers.add(
+                                                new BlockTrigger(blockBox, x, y, z, blockId)
+                                        );
                                     }
                                 }
                             }

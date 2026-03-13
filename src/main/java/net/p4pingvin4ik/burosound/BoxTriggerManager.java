@@ -12,6 +12,7 @@ import static net.p4pingvin4ik.burosound.Burosound.LOGGER;
 
 public class BoxTriggerManager {
     public static final List<SoundBox> activeBoxes = new ArrayList<>();
+    public static final List<BlockTrigger> blockTriggers = new ArrayList<>();
     public static final Map<Identifier, Identifier> nextSoundMap = new HashMap<>();
 
     private static BoxMusicInstance activeMusicInstance = null;
@@ -30,6 +31,16 @@ public class BoxTriggerManager {
         OverlapContext(BoxMusicInstance instance, Identifier currentSoundId) {
             this.instance = instance;
             this.currentSoundId = currentSoundId;
+        }
+    }
+
+    public static void handleBlockInteraction(MinecraftClient client, Identifier currentDim, net.minecraft.util.math.BlockPos pos, Identifier blockId) {
+        if (client == null || client.getSoundManager() == null) return;
+
+        for (BlockTrigger trigger : blockTriggers) {
+            if (trigger.matches(currentDim, pos, blockId)) {
+                handleBaseBoxChange(client, trigger.box);
+            }
         }
     }
 
@@ -153,6 +164,12 @@ public class BoxTriggerManager {
         }
 
         if (baseBox != lastTriggeredBox) {
+            handleBaseBoxChange(client, baseBox);
+        }
+    }
+
+    private static void handleBaseBoxChange(MinecraftClient client, SoundBox baseBox) {
+        if (baseBox != lastTriggeredBox) {
             if (lastTriggeredBox != null && lastTriggeredBox.playWhileInside && baseBox == null) {
                 if (activeMusicInstance != null) activeMusicInstance.fadeOut();
                 activeSoundId = null;
@@ -174,20 +191,20 @@ public class BoxTriggerManager {
                     transitionTimer = 0;
                 } else {
                     Identifier targetSound = baseBox.soundId;
-                        Identifier currentDesiredSound = (pendingSoundId != null) ? pendingSoundId : activeSoundId;
+                    Identifier currentDesiredSound = (pendingSoundId != null) ? pendingSoundId : activeSoundId;
 
-                        if (!targetSound.equals(currentDesiredSound)) {
-                            if (activeMusicInstance != null && !activeMusicInstance.isDone()) {
-                                activeMusicInstance.fadeOut();
-                                pendingSoundId = targetSound;
-                                pendingIgnoreNoteBlocks = baseBox.ignoreNoteBlocks;
-                                transitionTimer = 20;
-                            } else {
-                                activeMusicInstance = new BoxMusicInstance(targetSound, baseBox.ignoreNoteBlocks);
-                                activeSoundId = targetSound;
-                                client.getSoundManager().play(activeMusicInstance);
-                            }
+                    if (!targetSound.equals(currentDesiredSound)) {
+                        if (activeMusicInstance != null && !activeMusicInstance.isDone()) {
+                            activeMusicInstance.fadeOut();
+                            pendingSoundId = targetSound;
+                            pendingIgnoreNoteBlocks = baseBox.ignoreNoteBlocks;
+                            transitionTimer = 20;
+                        } else {
+                            activeMusicInstance = new BoxMusicInstance(targetSound, baseBox.ignoreNoteBlocks);
+                            activeSoundId = targetSound;
+                            client.getSoundManager().play(activeMusicInstance);
                         }
+                    }
                 }
             }
             lastTriggeredBox = baseBox;

@@ -62,6 +62,7 @@ For each sound event, you can add extra fields that BuroSound understands:
 - **dimension** – Which dimension this region belongs to.
 - **exit** – Mark this region as an “exit zone” that only fades out music.
 - **play_while_inside** – If `true`, the sound only plays while the player stays inside the box: when it ends and the player is still inside, it restarts; when the player leaves the box, it fades out immediately.
+- **block_trigger** – Optional extra trigger that acts like “entering” the same music box, but is activated by right‑clicking a specific block.
 
 All coordinates are in **block coordinates** in the world.
 
@@ -212,6 +213,46 @@ You can also define completely custom sound events that are not bound to any ite
 
 - The event `burosound.track1` plays `records/track1` when the player is inside the specified box.  
 - This event does not need to be linked to any physical item.
+
+---
+
+### Example 6: Block‑Activated Trigger (Right‑Click)
+
+You can also make a sound behave like a region trigger, but activated by **right‑clicking a block** instead of walking into an area.  
+Use the `block_trigger` field in the same sound definition:
+
+```json
+{
+  "music_disc.secret_button": {
+    "sounds": [
+      {
+        "name": "my_pack:music/secret_theme",
+        "stream": true,
+        "box": [10, 64, -5, 10, 64, -5],
+        "dimension": "minecraft:overworld",
+
+        "block_trigger": [10, 64, -5, "stone_button"]
+      }
+    ]
+  }
+}
+```
+
+- `block_trigger` can be written either as an array `[x, y, z, "block_id"]` or as an object:
+
+```json
+"block_trigger": {
+  "x": 10,
+  "y": 64,
+  "z": -5,
+  "block": "stone_button"
+}
+```
+
+- If the block ID does not contain a namespace, `minecraft:` is added automatically (so `"stone_button"` becomes `"minecraft:stone_button"`).  
+- When the player **right‑clicks exactly that block in that dimension**, BuroSound behaves exactly as if the player had entered the corresponding box:
+  - it starts the same sound that would play when entering the `box`,
+  - it respects all flags: `exit`, `play_while_inside`, `next`, `ignore_note_blocks`, `allow_overlap`, and any chained tracks.
 
 ---
 

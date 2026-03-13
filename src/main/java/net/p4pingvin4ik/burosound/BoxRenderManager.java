@@ -146,7 +146,7 @@ public class BoxRenderManager {
                         false,
                         modelViewMatrix,
                         context.consumers(),
-                        TextRenderer.TextLayerType.NORMAL,
+                        TextRenderer.TextLayerType.SEE_THROUGH,
                         0,
                         0xF000F0
                 );

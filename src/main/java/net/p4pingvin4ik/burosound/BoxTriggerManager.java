@@ -12,6 +12,7 @@ import static net.p4pingvin4ik.burosound.Burosound.LOGGER;
 
 public class BoxTriggerManager {
     public static final List<SoundBox> activeBoxes = new ArrayList<>();
+    public static final List<BlockTrigger> blockTriggers = new ArrayList<>();
     public static final Map<Identifier, Identifier> nextSoundMap = new HashMap<>();
 
     private static BoxMusicInstance activeMusicInstance = null;
@@ -30,6 +31,16 @@ public class BoxTriggerManager {
         OverlapContext(BoxMusicInstance instance, Identifier currentSoundId) {
             this.instance = instance;
             this.currentSoundId = currentSoundId;
+        }
+    }
+
+    public static void handleBlockInteraction(MinecraftClient client, Identifier currentDim, net.minecraft.util.math.BlockPos pos, Identifier blockId) {
+        if (client == null || client.getSoundManager() == null) return;
+
+        for (BlockTrigger trigger : blockTriggers) {
+            if (trigger.matches(currentDim, pos, blockId)) {
+                handleBaseBoxChange(client, trigger.box);
+            }
         }
     }
 
@@ -152,6 +163,12 @@ public class BoxTriggerManager {
             }
         }
 
+        if (baseBox != lastTriggeredBox) {
+            handleBaseBoxChange(client, baseBox);
+        }
+    }
+
+    private static void handleBaseBoxChange(MinecraftClient client, SoundBox baseBox) {
         if (baseBox != lastTriggeredBox) {
             if (lastTriggeredBox != null && lastTriggeredBox.playWhileInside && baseBox == null) {
                 if (activeMusicInstance != null) activeMusicInstance.fadeOut();

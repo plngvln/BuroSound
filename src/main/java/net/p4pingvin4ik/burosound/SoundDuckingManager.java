@@ -11,13 +11,7 @@ public class SoundDuckingManager {
 
         float targetModifier = (now - lastNoteBlockTime < 1000) ? 0.01f : 1.0f;
 
-        float transitionSpeed;
-
-        if (targetModifier < currentVolumeModifier) {
-            transitionSpeed = 0.3f;
-        } else {
-            transitionSpeed = 0.02f;
-        }
+        float transitionSpeed = (targetModifier < currentVolumeModifier) ? 0.3f : 0.02f;
         currentVolumeModifier = MathHelper.lerp(transitionSpeed, currentVolumeModifier, targetModifier);
     }
 
@@ -25,7 +19,10 @@ public class SoundDuckingManager {
         lastNoteBlockTime = System.currentTimeMillis();
     }
 
-    public static float getModifier() {
-        return currentVolumeModifier;
+    public static float calculateVolume(float baseFade, boolean ignoreDucking) {
+        if (ignoreDucking) {
+            return baseFade;
+        }
+        return baseFade * currentVolumeModifier;
     }
 }

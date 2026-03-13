@@ -8,16 +8,20 @@ public class SoundBox {
     public final Identifier dimension;
     public final boolean isExit;
     public final boolean playWhileInside;
+    public final boolean ignoreNoteBlocks;
+    public final boolean allowOverlap;
 
     public final double minX, minY, minZ;
     public final double maxX, maxY, maxZ;
 
-    public SoundBox(String soundName, double x1, double y1, double z1, double x2, double y2, double z2, Identifier dimension, boolean isExit,boolean playWhileInside) {
+    public SoundBox(String soundName, double x1, double y1, double z1, double x2, double y2, double z2, Identifier dimension, boolean isExit, boolean playWhileInside, boolean ignoreNoteBlocks, boolean allowOverlap) {
         this.soundIdName = soundName;
         this.soundId = Identifier.of("minecraft", soundName);
         this.dimension = dimension;
         this.isExit = isExit;
         this.playWhileInside = playWhileInside;
+        this.ignoreNoteBlocks = ignoreNoteBlocks;
+        this.allowOverlap = allowOverlap;
 
         this.minX = Math.min(x1, x2);
         this.minY = Math.min(y1, y2);

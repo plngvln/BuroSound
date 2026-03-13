@@ -10,9 +10,11 @@ public class BoxMusicInstance extends PositionedSoundInstance implements Tickabl
     private boolean done = false;
     private boolean isFadingOut = false;
     private float fadeMultiplier = 1.0f;
+    private final boolean ignoreNoteBlocks;
 
-    public BoxMusicInstance(Identifier id) {
+    public BoxMusicInstance(Identifier id, boolean ignoreNoteBlocks) {
         super(id, SoundCategory.RECORDS, 1.0f, 1.0f, SoundInstance.createRandom(), false, 0, AttenuationType.NONE, 0.0, 0.0, 0.0, true);
+        this.ignoreNoteBlocks = ignoreNoteBlocks;
     }
 
     public void fadeOut() {
@@ -34,6 +36,6 @@ public class BoxMusicInstance extends PositionedSoundInstance implements Tickabl
                 this.done = true;
             }
         }
-        this.volume = this.fadeMultiplier * SoundDuckingManager.getModifier();
+        this.volume = SoundDuckingManager.calculateVolume(this.fadeMultiplier, this.ignoreNoteBlocks);
     }
 }

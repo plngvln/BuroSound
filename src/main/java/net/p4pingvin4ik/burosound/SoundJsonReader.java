@@ -19,6 +19,12 @@ import static net.p4pingvin4ik.burosound.Burosound.LOGGER;
 
 public class SoundJsonReader {
 
+    private static boolean readBoolean(JsonObject obj, String snakeCaseKey, String camelCaseKey) {
+        if (obj.has(snakeCaseKey)) return obj.get(snakeCaseKey).getAsBoolean();
+        if (obj.has(camelCaseKey)) return obj.get(camelCaseKey).getAsBoolean();
+        return false;
+    }
+
 
     public static void readSoundsConfig() {
         LOGGER.info("starting sound dump");
@@ -36,7 +42,7 @@ public class SoundJsonReader {
             }
 
             try (InputStream inputStream = resource.getInputStream();
-                InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+                 InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                 JsonObject rootObject = JsonParser.parseReader(reader).getAsJsonObject();
 
                 for (Map.Entry<String, JsonElement> entry : rootObject.entrySet()) {
@@ -64,8 +70,10 @@ public class SoundJsonReader {
                                 if (!dimStr.contains(":")) dimStr = "minecraft:" + dimStr;
                                 Identifier dimensionId = Identifier.of(dimStr);
 
-                                boolean isExit = sObj.has("exit") && sObj.get("exit").getAsBoolean();
-                                boolean playWhileInside = sObj.has("play_while_inside") && sObj.get("play_while_inside").getAsBoolean();
+                                boolean isExit = readBoolean(sObj, "exit", "isExit");
+                                boolean playWhileInside = readBoolean(sObj, "play_while_inside", "playWhileInside");
+                                boolean ignoreNoteBlocks = readBoolean(sObj, "ignore_note_blocks", "ignoreNoteBlocks");
+                                boolean allowOverlap = readBoolean(sObj, "allow_overlap", "allowOverlap");
 
                                 if (sObj.has("box")) {
                                     JsonArray boxArray = sObj.getAsJsonArray("box");
@@ -75,12 +83,12 @@ public class SoundJsonReader {
                                         if (firstElement.isJsonArray()) {
                                             for (JsonElement boxElement : boxArray) {
                                                 if (boxElement.isJsonArray()) {
-                                                    registerBox(eventName, boxElement.getAsJsonArray(), dimensionId, isExit, playWhileInside);
+                                                    registerBox(eventName, boxElement.getAsJsonArray(), dimensionId, isExit, playWhileInside, ignoreNoteBlocks, allowOverlap);
                                                 }
                                             }
                                         }
                                         else if (firstElement.isJsonPrimitive() && firstElement.getAsJsonPrimitive().isNumber()) {
-                                            registerBox(eventName, boxArray, dimensionId, isExit, playWhileInside);
+                                            registerBox(eventName, boxArray, dimensionId, isExit, playWhileInside, ignoreNoteBlocks, allowOverlap);
                                         }
                                     }
                                 }
@@ -96,7 +104,7 @@ public class SoundJsonReader {
         LOGGER.info("loaded {} trigger boxes.", BoxTriggerManager.activeBoxes.size());
     }
 
-    private static void registerBox(String eventName, JsonArray coords, Identifier dim, boolean isExit, boolean playWhileInside) {
+    private static void registerBox(String eventName, JsonArray coords, Identifier dim, boolean isExit, boolean playWhileInside, boolean ignoreNoteBlocks, boolean allowOverlap) {
         if (coords.size() >= 6) {
             double x1 = coords.get(0).getAsDouble();
             double y1 = coords.get(1).getAsDouble();
@@ -105,7 +113,7 @@ public class SoundJsonReader {
             double y2 = coords.get(4).getAsDouble();
             double z2 = coords.get(5).getAsDouble();
 
-            BoxTriggerManager.activeBoxes.add(new SoundBox(eventName, x1, y1, z1, x2, y2, z2, dim, isExit, playWhileInside));
+            BoxTriggerManager.activeBoxes.add(new SoundBox(eventName, x1, y1, z1, x2, y2, z2, dim, isExit, playWhileInside, ignoreNoteBlocks, allowOverlap));
         }
     }
 }

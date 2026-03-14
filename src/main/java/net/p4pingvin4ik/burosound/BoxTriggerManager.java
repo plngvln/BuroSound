@@ -74,15 +74,11 @@ public class BoxTriggerManager {
 
         if (activeMusicInstance != null && transitionTimer == 0) {
             if (!client.getSoundManager().isPlaying(activeMusicInstance)) {
-
                 Identifier nextSound = nextSoundMap.get(activeSoundId);
 
                 if (nextSound != null) {
                     activeMusicInstance = new BoxMusicInstance(nextSound, lastTriggeredBox != null && lastTriggeredBox.ignoreNoteBlocks);
                     activeSoundId = nextSound;
-                    client.getSoundManager().play(activeMusicInstance);
-                } else if (lastTriggeredBox != null && lastTriggeredBox.playWhileInside) {
-                    activeMusicInstance = new BoxMusicInstance(activeSoundId, lastTriggeredBox.ignoreNoteBlocks);
                     client.getSoundManager().play(activeMusicInstance);
                 } else {
                     activeMusicInstance = null;
@@ -133,12 +129,6 @@ public class BoxTriggerManager {
                         client.getSoundManager().play(nextInstance);
                         ctx.instance = nextInstance;
                         ctx.currentSoundId = next;
-                    } else if (overlapBox.playWhileInside) {
-                        Identifier restartId = overlapBox.soundId;
-                        BoxMusicInstance restartInstance = new BoxMusicInstance(restartId, overlapBox.ignoreNoteBlocks);
-                        client.getSoundManager().play(restartInstance);
-                        ctx.instance = restartInstance;
-                        ctx.currentSoundId = restartId;
                     } else {
                         overlapContexts.remove(overlapBox);
                     }

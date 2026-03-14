@@ -61,7 +61,7 @@ For each sound event, you can add extra fields that BuroSound understands:
 - **next** – The next sound event to play when this one finishes.
 - **dimension** – Which dimension this region belongs to.
 - **exit** – Mark this region as an “exit zone” that only fades out music.
-- **play_while_inside** – If `true`, the sound only plays while the player stays inside the box: when it ends and the player is still inside, it restarts; when the player leaves the box, it fades out immediately.
+- **play_while_inside** – If `true`, the sound is tied to being inside the box: if the player leaves the box, it fades out immediately; if it ends while the player is still inside, it **does not** restart on its own (use `next` for continuous playback).
 - **block_trigger** – Optional extra trigger that acts like “entering” the same music box, but is activated by right‑clicking a specific block.
 
 All coordinates are in **block coordinates** in the world.
@@ -90,7 +90,7 @@ This example plays `my_pack:music/lobby_theme` inside a rectangular lobby in the
 - When the player is inside `x: 0–30`, `y: 60–80`, `z: 0–30` in the overworld, the lobby theme plays.  
 - With the default `play_while_inside = false`, once the music has been triggered it keeps playing even if the player leaves the box, until it finishes or is stopped by an exit trigger/command/dimension change.  
 - Because `play_while_inside` is not set here and there is no `next`, if the track finishes while the player is still inside the box, it will **not** automatically restart.  
-- To loop a track you can either set `"play_while_inside": true` (it will keep restarting as long as the player is inside the box and stop when they leave), or set `"next": "lobby_theme"` to chain the event to itself for a continuous loop.
+- To loop a track, set `"next": "lobby_theme"` to chain the event to itself for a continuous loop.
 
 ---
 

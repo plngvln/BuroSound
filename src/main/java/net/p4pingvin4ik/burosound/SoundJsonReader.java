@@ -4,10 +4,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,16 +33,16 @@ public class SoundJsonReader {
         BoxTriggerManager.blockTriggers.clear();
         BoxTriggerManager.nextSoundMap.clear();
 
-        ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
-        Identifier soundFile = Identifier.of("minecraft", "sounds.json");
-        List<Resource> resources = resourceManager.getAllResources(soundFile);
+        ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+        Identifier soundFile = Identifier.fromNamespaceAndPath("minecraft", "sounds.json");
+        List<Resource> resources = resourceManager.getResourceStack(soundFile);
 
         for (Resource resource : resources) {
-            if ("vanilla".equals(resource.getPackId())) {
+            if ("vanilla".equals(resource.sourcePackId())) {
                 continue;
             }
 
-            try (InputStream inputStream = resource.getInputStream();
+            try (InputStream inputStream = resource.open();
                  InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                 JsonObject rootObject = JsonParser.parseReader(reader).getAsJsonObject();
 
@@ -62,14 +62,14 @@ public class SoundJsonReader {
                                         nextStr = "music_disc." + nextStr;
                                     }
                                     BoxTriggerManager.nextSoundMap.put(
-                                            Identifier.of("minecraft", eventName),
-                                            Identifier.of("minecraft", nextStr)
+                                            Identifier.fromNamespaceAndPath("minecraft", eventName),
+                                            Identifier.fromNamespaceAndPath("minecraft", nextStr)
                                     );
                                 }
 
                                 String dimStr = sObj.has("dimension") ? sObj.get("dimension").getAsString() : "minecraft:overworld";
                                 if (!dimStr.contains(":")) dimStr = "minecraft:" + dimStr;
-                                Identifier dimensionId = Identifier.of(dimStr);
+                                Identifier dimensionId = Identifier.parse(dimStr);
 
                                 boolean isExit = readBoolean(sObj, "exit", "isExit");
                                 boolean playWhileInside = readBoolean(sObj, "play_while_inside", "playWhileInside");
@@ -122,7 +122,7 @@ public class SoundJsonReader {
 
                                     if (blockIdStr != null) {
                                         if (!blockIdStr.contains(":")) blockIdStr = "minecraft:" + blockIdStr;
-                                        Identifier blockId = Identifier.of(blockIdStr);
+                                        Identifier blockId = Identifier.parse(blockIdStr);
 
                                         SoundBox blockBox = new SoundBox(
                                                 eventName,

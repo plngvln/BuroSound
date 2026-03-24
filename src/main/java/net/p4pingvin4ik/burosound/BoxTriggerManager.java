@@ -1,8 +1,9 @@
 package net.p4pingvin4ik.burosound;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +35,7 @@ public class BoxTriggerManager {
         }
     }
 
-    public static void handleBlockInteraction(MinecraftClient client, Identifier currentDim, net.minecraft.util.math.BlockPos pos, Identifier blockId) {
+    public static void handleBlockInteraction(Minecraft client, Identifier currentDim, net.minecraft.core.BlockPos pos, Identifier blockId) {
         if (client == null || client.getSoundManager() == null) return;
 
         for (BlockTrigger trigger : blockTriggers) {
@@ -44,7 +45,7 @@ public class BoxTriggerManager {
         }
     }
 
-    public static void stopAll(MinecraftClient client) {
+    public static void stopAll(Minecraft client) {
         if (activeMusicInstance != null) {
             client.getSoundManager().stop(activeMusicInstance);
             activeMusicInstance = null;
@@ -61,11 +62,11 @@ public class BoxTriggerManager {
         LOGGER.info("All music stopped.");
     }
 
-    public static void tick(MinecraftClient client) {
-        PlayerEntity player = client.player;
+    public static void tick(Minecraft client) {
+        Player player = client.player;
         if (player == null) return;
 
-        Identifier currentDim = player.getEntityWorld().getRegistryKey().getValue();
+        Identifier currentDim = player.level().dimension().identifier();
 
         if (lastDimension != null && !lastDimension.equals(currentDim)) {
             stopAll(client);
@@ -73,7 +74,7 @@ public class BoxTriggerManager {
         lastDimension = currentDim;
 
         if (activeMusicInstance != null && transitionTimer == 0) {
-            if (!client.getSoundManager().isPlaying(activeMusicInstance)) {
+            if (!client.getSoundManager().isActive(activeMusicInstance)) {
                 Identifier nextSound = nextSoundMap.get(activeSoundId);
 
                 if (nextSound != null) {
@@ -111,7 +112,6 @@ public class BoxTriggerManager {
             baseBox = exitBox;
         }
 
-        // Handle overlap boxes independently: next / playWhileInside without touching base music.
         for (SoundBox overlapBox : overlapBoxesInRange) {
             OverlapContext ctx = overlapContexts.get(overlapBox);
 
@@ -121,7 +121,7 @@ public class BoxTriggerManager {
                 client.getSoundManager().play(overlapSound);
                 overlapContexts.put(overlapBox, new OverlapContext(overlapSound, startId));
             } else {
-                if (!client.getSoundManager().isPlaying(ctx.instance)) {
+                if (!client.getSoundManager().isActive(ctx.instance)) {
                     Identifier next = nextSoundMap.get(ctx.currentSoundId);
 
                     if (next != null) {
@@ -142,7 +142,7 @@ public class BoxTriggerManager {
                 SoundBox box = entry.getKey();
                 if (!overlapBoxesInRange.contains(box)) {
                     OverlapContext ctx = entry.getValue();
-                    if (box.playWhileInside && client.getSoundManager().isPlaying(ctx.instance)) {
+                    if (box.playWhileInside && client.getSoundManager().isActive(ctx.instance)) {
                         ctx.instance.fadeOut();
                     }
                     toRemove.add(box);
@@ -158,7 +158,7 @@ public class BoxTriggerManager {
         }
     }
 
-    private static void handleBaseBoxChange(MinecraftClient client, SoundBox baseBox) {
+    private static void handleBaseBoxChange(Minecraft client, SoundBox baseBox) {
         if (baseBox != lastTriggeredBox) {
             if (lastTriggeredBox != null && lastTriggeredBox.playWhileInside && baseBox == null) {
                 if (activeMusicInstance != null) activeMusicInstance.fadeOut();

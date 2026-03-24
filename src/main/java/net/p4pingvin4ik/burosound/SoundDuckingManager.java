@@ -1,6 +1,6 @@
 package net.p4pingvin4ik.burosound;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class SoundDuckingManager {
     private static float currentVolumeModifier = 1.0f;
@@ -12,7 +12,7 @@ public class SoundDuckingManager {
         float targetModifier = (now - lastNoteBlockTime < 1000) ? 0.01f : 1.0f;
 
         float transitionSpeed = (targetModifier < currentVolumeModifier) ? 0.3f : 0.02f;
-        currentVolumeModifier = MathHelper.lerp(transitionSpeed, currentVolumeModifier, targetModifier);
+        currentVolumeModifier = Mth.lerp(transitionSpeed, currentVolumeModifier, targetModifier);
     }
 
     public static void notifyNoteBlock() {

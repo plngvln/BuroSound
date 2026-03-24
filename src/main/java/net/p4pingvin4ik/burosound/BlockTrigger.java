@@ -1,7 +1,7 @@
 package net.p4pingvin4ik.burosound;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 
 public class BlockTrigger {
     public final SoundBox box;
@@ -32,4 +32,3 @@ public class BlockTrigger {
         return this.blockId.equals(currentBlockId);
     }
 }
-

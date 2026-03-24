@@ -1,6 +1,6 @@
 package net.p4pingvin4ik.burosound;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 public class SoundBox {
     public final String soundIdName;
@@ -16,7 +16,7 @@ public class SoundBox {
 
     public SoundBox(String soundName, double x1, double y1, double z1, double x2, double y2, double z2, Identifier dimension, boolean isExit, boolean playWhileInside, boolean ignoreNoteBlocks, boolean allowOverlap) {
         this.soundIdName = soundName;
-        this.soundId = Identifier.of("minecraft", soundName);
+        this.soundId = Identifier.fromNamespaceAndPath("minecraft", soundName);
         this.dimension = dimension;
         this.isExit = isExit;
         this.playWhileInside = playWhileInside;

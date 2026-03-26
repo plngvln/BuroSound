@@ -136,7 +136,7 @@ public class BoxTriggerManager {
             }
         }
 
-        if (!overlapContexts.isEmpty()) {
+        if (exitBox == null && !overlapContexts.isEmpty()) {
             List<SoundBox> toRemove = new ArrayList<>();
             for (Map.Entry<SoundBox, OverlapContext> entry : overlapContexts.entrySet()) {
                 SoundBox box = entry.getKey();
@@ -145,7 +145,9 @@ public class BoxTriggerManager {
                     if (box.playWhileInside && client.getSoundManager().isActive(ctx.instance)) {
                         ctx.instance.fadeOut();
                     }
-                    toRemove.add(box);
+                    if (!client.getSoundManager().isPlaying(ctx.instance)) {
+                        toRemove.add(box);
+                    }
                 }
             }
             for (SoundBox box : toRemove) {
@@ -155,6 +157,16 @@ public class BoxTriggerManager {
 
         if (baseBox != lastTriggeredBox) {
             handleBaseBoxChange(client, baseBox);
+        }
+
+        if (transitionTimer > 0) {
+            transitionTimer--;
+            if (transitionTimer == 0 && pendingSoundId != null && activeMusicInstance != null) {
+                activeMusicInstance = new BoxMusicInstance(pendingSoundId, pendingIgnoreNoteBlocks);
+                activeSoundId = pendingSoundId;
+                client.getSoundManager().play(activeMusicInstance);
+                pendingSoundId = null;
+            }
         }
     }
 
@@ -198,16 +210,6 @@ public class BoxTriggerManager {
                 }
             }
             lastTriggeredBox = baseBox;
-        }
-
-        if (transitionTimer > 0) {
-            transitionTimer--;
-            if (transitionTimer == 0 && pendingSoundId != null) {
-                activeMusicInstance = new BoxMusicInstance(pendingSoundId, pendingIgnoreNoteBlocks);
-                activeSoundId = pendingSoundId;
-                client.getSoundManager().play(activeMusicInstance);
-                pendingSoundId = null;
-            }
         }
     }
 }

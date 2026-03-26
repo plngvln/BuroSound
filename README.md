@@ -1,148 +1,118 @@
-### BuroSound
+# BuroSound
 
-**BuroSound** lets map‑makers and resource‑pack creators place custom music and ambience directly in the world.  
-Walk into an area → a track starts. Leave it → it fades out or switches to another track.  
-Everything is driven by simple configuration in `sounds.json`.
+> **BuroSound** is a client-side mod that allows map-makers and resource-pack creators to bind custom music and ambience to specific 3D regions in Minecraft. Enter an area, and a track smoothly starts. Leave it, and it fades out or transitions to another. Everything is configured entirely via `sounds.json`.
 
 ---
 
-### Features
+## Key Features
 
-- **Area‑based music**
-  - Play music or ambience when the player enters a 3D region (“box”) in the world.
-  - Each box is linked to a sound event from a resource pack.
-  - Boxes can be limited to specific dimensions.
-- **Smooth transitions**
-  - When you move from one music area to another, the current track can fade out before the new one starts.
-  - “Exit” zones can fade everything out and clear the queue.
-- **Music chains / playlists**
-  - One track can automatically start another when it finishes, using a simple `next` field in `sounds.json`.
-- **Note block friendly**
-  - When note blocks play, BuroSound temporarily lowers the background music volume so you can clearly hear note block songs and contraptions.
-- **Visual debug overlay**
-  - Optional overlay shows all sound boxes around you as colored outlines with labels, so creators can see exactly where music will play.
-- **Client commands**
-  - `/burosound boxes` – Toggle rendering of sound boxes (debug overlay).
-  - `/burosound stop` – Stop all BuroSound music and clear the next‑track queue.
+*   **Spatial Audio Without GUIs:** Setup requires no in-game interfaces—everything is controlled via versionable JSON in your resource pack.
+*   **Playlists & Chains:** A track can automatically trigger the next one when it finishes.
+*   **Smooth Transitions:** Supports audio fading when moving between locations and dedicated "exit zones" to stop playback.
+*   **Note Block Compatibility (Ducking):** When note blocks play, BuroSound's background music temporarily lowers in volume so contraptions and melodies remain audible.
+*   **Debugging Tools:** A visual in-game overlay displays the exact boundaries of your music zones.
 
 ---
 
-### Who Is This For?
+## Installation
 
-- **Players**
-  - Install it like a normal client mod.
-  - On its own, BuroSound does nothing; it needs a resource pack or modpack that defines music regions in `sounds.json`.
-- **Map / resource‑pack creators**
-  - Ideal for:
-    - Lobby music in specific rooms
-    - Boss / dungeon themes tied to arenas
-    - Ambient zones in towns, biomes, interiors
-    - Smooth transitions between areas (corridors, portals, etc.)
+### For Players
+1. Install **Fabric Loader** and **Fabric API**.
+2. Place the **BuroSound** `.jar` file into your `mods` folder.
+3. Enable a resource pack containing zone configurations (without it, the mod does nothing).
 
-No in‑game GUI is required: everything is controlled via resource packs and versionable JSON.
+### For Content Creators
+The mod reads the `assets/minecraft/sounds.json` file from your resource pack. Simply add specific parameters to your sound events inside the `sounds` array. To apply changes in-game, use `F3 + T` (reload resource packs).
 
 ---
 
-### Installation (Player)
+## Parameter Reference (`sounds.json`)
 
-1. Install **Fabric Loader** and **Fabric API** for your Minecraft version.
-2. Download the **BuroSound** JAR and place it into your `mods` folder.
-3. Install or enable a **resource pack** that defines BuroSound boxes and music (see examples below).
-4. Start the game and join a world.
+The following fields can be added to any sound event within the `sounds` array. All coordinates are specified in blocks.
 
----
-
-### Quick Start for Creators
-
-BuroSound reads `assets/minecraft/sounds.json` from resource packs.  
-For each sound event, you can add extra fields that BuroSound understands:
-
-- **box** – One or more 3D regions where this sound should be active.
-- **next** – The next sound event to play when this one finishes.
-- **dimension** – Which dimension this region belongs to.
-- **exit** – Mark this region as an “exit zone” that only fades out music.
-- **play_while_inside** – If `true`, the sound is tied to being inside the box: if the player leaves the box, it fades out immediately; if it ends while the player is still inside, it **does not** restart on its own (use `next` for continuous playback).
-- **block_trigger** – Optional extra trigger that acts like “entering” the same music box, but is activated by right‑clicking a specific block.
-
-All coordinates are in **block coordinates** in the world.
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `box` | `[int]` or `[[int]]` | *None* | 3D trigger zone for the sound. Format: `[x1, y1, z1, x2, y2, z2]` or an array of such zones. |
+| `dimension` | `string` | `minecraft:overworld` | The dimension where the zone is active. |
+| `exit` / `isExit` | `boolean` | `false` | If `true`, the zone acts as an exit trigger: it smoothly stops current music and clears the queue. |
+| `next` | `string` | *None* | ID of the next track. If provided without a dot (`.`), the mod automatically adds the `music_disc.` prefix. |
+| `play_while_inside` / `playWhileInside` | `boolean` | `false` | If `true`, the music fades out immediately upon leaving the zone. If `false`, the track plays to the end even if you leave. |
+| `ignore_note_blocks` / `ignoreNoteBlocks`| `boolean` | `false` | If `true`, this track will not be ducked (lowered in volume) when note blocks play. |
+| `allow_overlap` / `allowOverlap` | `boolean` | `false` | If `true`, the sound from this zone can play simultaneously with sounds from other zones. |
+| `block_trigger` / `blockTrigger` | `array` or `object`| *None* | Alternative activation method: right-clicking a specific block at the specified coordinates. |
 
 ---
 
-### Example 1: Simple Lobby Music
+## Argument Examples
 
-This example plays `my_pack:music/lobby_theme` inside a rectangular lobby in the overworld.
+### 1. Basic Zone & Dimension (`box`, `dimension`)
+A standard zone in the Nether. The track starts upon entry and plays to completion, even if the player leaves the area.
 
 ```json
 {
-  "music_disc.lobby_theme": {
+  "music_disc.nether_ambient": {
     "sounds": [
       {
-        "name": "my_pack:music/lobby_theme",
+        "name": "my_pack:music/nether_ambient",
         "stream": true,
-        "box": [0, 60, 0, 30, 80, 30],
-        "dimension": "minecraft:overworld"
+        "box": [10, 30, 10, 50, 80, 50],
+        "dimension": "minecraft:the_nether"
       }
     ]
   }
 }
 ```
 
-- When the player is inside `x: 0–30`, `y: 60–80`, `z: 0–30` in the overworld, the lobby theme plays.
-- With the default `play_while_inside = false`, once the music has been triggered it keeps playing even if the player leaves the box, until it finishes or is stopped by an exit trigger/command/dimension change.
-- Because `play_while_inside` is not set here and there is no `next`, if the track finishes while the player is still inside the box, it will **not** automatically restart.
-- To loop a track, set `"next": "lobby_theme"` to chain the event to itself for a continuous loop.
+### 2. Multi-Zones (`box` with an array of arrays)
+The same track assigned to two different rooms. Walking between them will not restart the music.
 
----
+```json
+{
+  "music_disc.town_theme": {
+    "sounds": [
+      {
+        "name": "my_pack:music/town",
+        "stream": true,
+        "box": [
+          [-20, 64, -20, 20, 80, 20],
+          [100, 64, 100, 150, 80, 150]
+        ]
+      }
+    ]
+  }
+}
+```
 
-### Example 2: Boss Arena with Exit Zone
-
-In this example, one arena region plays a boss theme, and a small “exit corridor” fades out the music.
+### 3. Presence Dependency & Looping (`play_while_inside`, `next`)
+The music plays **only** while the player is inside the cube. Upon exiting, it smoothly fades out. The `"next": "boss_theme"` parameter forces the track to trigger itself after finishing, creating an endless loop.
 
 ```json
 {
   "music_disc.boss_theme": {
     "sounds": [
       {
-        "name": "my_pack:music/boss_theme",
+        "name": "my_pack:music/boss",
         "stream": true,
         "box": [0, 60, 0, 30, 80, 30],
-        "dimension": "the_nether",
         "play_while_inside": true,
         "next": "boss_theme"
-      }
-    ]
-  },
-  "exit": {
-    "sounds": [
-      {
-        "name": "none",
-        "box": [30, 60, -5, 0, 80, -10],
-        "dimension": "the_nether",
-        "exit": true
       }
     ]
   }
 }
 ```
 
-- Inside the big arena box, the boss theme plays.
-- Stepping into the separate `exit` box fades the music out and stop playing.
-
----
-
-### Example 3: Chained Tracks (Playlists)
-
-You can chain tracks together using the `next` field.  
-If `next` does not contain a dot, BuroSound automatically prefixes `music_disc.`
+### 4. Creating a Playlist (`next` to a different track)
+When `track_one` finishes, the mod automatically starts `track_two`.
 
 ```json
 {
   "music_disc.track_one": {
     "sounds": [
       {
-        "name": "my_pack:music/track_one",
+        "name": "my_pack:music/part1",
         "stream": true,
-        "box": [100, 64, 100, 140, 80, 140],
+        "box": [0, 60, 0, 10, 70, 10],
         "next": "track_two"
       }
     ]
@@ -150,87 +120,61 @@ If `next` does not contain a dot, BuroSound automatically prefixes `music_disc.`
   "music_disc.track_two": {
     "sounds": [
       {
-        "name": "my_pack:music/track_two",
+        "name": "my_pack:music/part2",
         "stream": true,
-        "box": [100, 64, 100, 140, 80, 140]
+        "box": [0, 60, 0, 10, 70, 10]
       }
     ]
   }
 }
 ```
 
-- Inside the box, `music_disc.track_one` plays first.
-- When it finishes, BuroSound automatically starts `music_disc.track_two` (because of `next: "track_two"`).
-- You can create longer playlists by chaining multiple events.
-
----
-
-### Example 4: Multiple Boxes for the Same Track
-
-You can assign multiple regions to the same sound using an array of arrays:
+### 5. Ignoring Note Blocks & Overlapping (`ignore_note_blocks`, `allow_overlap`)
+This background hum can play concurrently with other music and will not become quieter if a note block mechanism is active nearby.
 
 ```json
 {
-  "music_disc.town_theme": {
+  "burosound.machine_hum": {
     "sounds": [
       {
-        "name": "my_pack:music/town_theme",
+        "name": "my_pack:ambient/hum",
         "stream": true,
-        "box": [
-          [-20, 64, -20, 20, 80, 20],
-          [30, 64, -10, 50, 80, 10]
-        ],
-        "dimension": "minecraft:overworld"
+        "box": [5, 64, 5, 10, 68, 10],
+        "ignore_note_blocks": true,
+        "allow_overlap": true
       }
     ]
   }
 }
 ```
 
-- Both defined areas share the same town theme.
-- Walking between them does not restart the track, because they are the same sound event.
-
----
-
-### Example 5: Custom Sounds Not Tied to Items
-
-You can also define completely custom sound events that are not bound to any item or vanilla music disc:
+### 6. Exit Zone (`exit`)
+This zone does not play music. If a player enters this corridor, any currently playing BuroSound music smoothly fades out and stops.
 
 ```json
 {
-  "burosound.track1": {
-    "category": "record",
+  "exit_corridor": {
     "sounds": [
       {
-        "name": "records/track1",
-        "stream": true,
-        "box": [100, 64, 100, 120, 80, 120]
+        "name": "none",
+        "box": [30, 60, -5, 40, 65, -10],
+        "exit": true
       }
     ]
   }
 }
 ```
 
-- The event `burosound.track1` plays `records/track1` when the player is inside the specified box.
-- This event does not need to be linked to any physical item.
-
----
-
-### Example 6: Block‑Activated Trigger (Right‑Click)
-
-You can also make a sound behave like a region trigger, but activated by **right‑clicking a block** instead of walking into an area.  
-Use the `block_trigger` field in the same sound definition:
+### 7. Block Click Trigger (`block_trigger`)
+Instead of entering a zone, the music is activated by right-clicking a specific block.
 
 ```json
 {
   "music_disc.secret_button": {
     "sounds": [
       {
-        "name": "my_pack:music/secret_theme",
+        "name": "my_pack:music/secret",
         "stream": true,
-        "box": [10, 64, -5, 10, 64, -5],
-        "dimension": "minecraft:overworld",
-
         "block_trigger": [10, 64, -5, "stone_button"]
       }
     ]
@@ -238,40 +182,13 @@ Use the `block_trigger` field in the same sound definition:
 }
 ```
 
-- `block_trigger` can be written either as an array `[x, y, z, "block_id"]` or as an object:
-
-```json
-"block_trigger": {
-"x": 10,
-"y": 64,
-"z": -5,
-"block": "stone_button"
-}
-```
-
-- If the block ID does not contain a namespace, `minecraft:` is added automatically (so `"stone_button"` becomes `"minecraft:stone_button"`).
-- When the player **right‑clicks exactly that block in that dimension**, BuroSound behaves exactly as if the player had entered the corresponding box:
-  - it starts the same sound that would play when entering the `box`,
-  - it respects all flags: `exit`, `play_while_inside`, `next`, `ignore_note_blocks`, `allow_overlap`, and any chained tracks.
-
 ---
 
-### Controls & Debugging
+## Commands & Controls
 
-- `/burosound boxes`
-  - Toggles the overlay that shows all currently active BuroSound boxes in your dimension.
-- `/burosound stop`
-  - Immediately stops all music managed by BuroSound.
-  - Clears any queued “next” tracks.
-- `F3+T`
-  - Reloads resource packs.
-  - BuroSound automatically re‑parses `sounds.json` on resource reload, so you can iterate quickly while editing.
+For debugging convenience, the mod provides client-side commands:
 
----
-
-### Note Blocks and Volume Ducking
-
-BuroSound listens for note block sounds:
-
-- When **note blocks play**, the mod temporarily reduces the volume of region music so you can hear the notes clearly.
-- Once note blocks stop, the music volume gradually returns to normal.
+*   `/burosound boxes`
+    Toggles the debug overlay. Displays colored outlines and labels for all active zones in your current dimension. Perfect for verifying coordinates.
+*   `/burosound stop`
+    Instantly stops all playing BuroSound music and completely clears the queue of upcoming tracks.

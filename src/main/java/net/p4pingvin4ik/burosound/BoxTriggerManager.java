@@ -145,7 +145,7 @@ public class BoxTriggerManager {
                     if (box.playWhileInside && client.getSoundManager().isActive(ctx.instance)) {
                         ctx.instance.fadeOut();
                     }
-                    if (!client.getSoundManager().isPlaying(ctx.instance)) {
+                    if (!client.getSoundManager().isActive(ctx.instance)) {
                         toRemove.add(box);
                     }
                 }

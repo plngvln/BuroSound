@@ -1,20 +1,17 @@
 package net.p4pingvin4ik.burosound;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
-import org.joml.Matrix4f;
 
 import java.util.Random;
 
@@ -36,9 +33,7 @@ public class BoxRenderManager {
         if (!isRendering || BoxTriggerManager.activeBoxes.isEmpty() || client.level == null) return;
 
         PoseStack poseStack = context.poseStack();
-        MultiBufferSource.BufferSource bufferSource = context.bufferSource();
-
-        Camera camera = client.gameRenderer.getMainCamera();
+        Camera camera = client.gameRenderer.mainCamera();
         Vec3 camPos = camera.position();
 
         Identifier currentDim = client.level.dimension().identifier();
@@ -61,20 +56,14 @@ public class BoxRenderManager {
 
             poseStack.pushPose();
 
-            VertexConsumer lineConsumer = bufferSource.getBuffer(RenderTypes.lines());
-
             AABB box = new AABB(
                     soundBox.minX, soundBox.minY, soundBox.minZ,
                     soundBox.maxX, soundBox.maxY, soundBox.maxZ
             );
 
-            ShapeRenderer.renderShape(
-                    poseStack,
-                    lineConsumer,
-                    Shapes.create(box),
-                    -camPos.x, -camPos.y, -camPos.z,
-                    color,
-                    2.0f
+            poseStack.translate(-camPos.x, -camPos.y, -camPos.z);
+            context.submitNodeCollector().submitShapeOutline(
+                    poseStack, Shapes.create(box), RenderTypes.lines(), color, 2.0f, false
             );
             poseStack.popPose();
 
@@ -94,21 +83,12 @@ public class BoxRenderManager {
             float scale = 0.025f;
             poseStack.scale(scale, -scale, scale);
 
-            Matrix4f modelViewMatrix = poseStack.last().pose();
             String text = soundBox.soundIdName;
             float renderX = -font.width(text) * 0.5f;
 
-            font.drawInBatch(
-                    text,
-                    renderX,
-                    0,
-                    0xFFFFFFFF,
-                    false,
-                    modelViewMatrix,
-                    bufferSource,
-                    Font.DisplayMode.NORMAL,
-                    0,
-                    0xF000F0
+            context.submitNodeCollector().submitText(
+                    poseStack, renderX, 0, Component.literal(text).getVisualOrderText(), false,
+                    Font.DisplayMode.NORMAL, 0xF000F0, 0xFFFFFFFF, 0, 0
             );
             poseStack.popPose();
         }
@@ -120,20 +100,14 @@ public class BoxRenderManager {
 
             poseStack.pushPose();
 
-            VertexConsumer lineConsumer = bufferSource.getBuffer(RenderTypes.lines());
-
             AABB box = new AABB(
                     trigger.x, trigger.y, trigger.z,
                     trigger.x + 1, trigger.y + 1, trigger.z + 1
             );
 
-            ShapeRenderer.renderShape(
-                    poseStack,
-                    lineConsumer,
-                    Shapes.create(box),
-                    -camPos.x, -camPos.y, -camPos.z,
-                    color,
-                    2.0f
+            poseStack.translate(-camPos.x, -camPos.y, -camPos.z);
+            context.submitNodeCollector().submitShapeOutline(
+                    poseStack, Shapes.create(box), RenderTypes.lines(), color, 2.0f, false
             );
             poseStack.popPose();
 
@@ -153,21 +127,12 @@ public class BoxRenderManager {
             float scale = 0.025f;
             poseStack.scale(scale, -scale, scale);
 
-            Matrix4f modelViewMatrix = poseStack.last().pose();
             String text = trigger.box.soundIdName;
             float renderX = -font.width(text) * 0.5f;
 
-            font.drawInBatch(
-                    text,
-                    renderX,
-                    0,
-                    0xFFFFFFFF,
-                    false,
-                    modelViewMatrix,
-                    bufferSource,
-                    Font.DisplayMode.SEE_THROUGH,
-                    0,
-                    0xF000F0
+            context.submitNodeCollector().submitText(
+                    poseStack, renderX, 0, Component.literal(text).getVisualOrderText(), false,
+                    Font.DisplayMode.SEE_THROUGH, 0xF000F0, 0xFFFFFFFF, 0, 0
             );
             poseStack.popPose();
         }

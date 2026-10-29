@@ -78,7 +78,7 @@ public class BoxRenderManager {
                     (float) (centerZ - camPos.z)
             );
 
-            poseStack.mulPose(camera.rotation());
+            poseStack.rotate(camera.rotation());
 
             float scale = 0.025f;
             poseStack.scale(scale, -scale, scale);
@@ -122,7 +122,7 @@ public class BoxRenderManager {
                     (float) (centerZ - camPos.z)
             );
 
-            poseStack.mulPose(camera.rotation());
+            poseStack.rotate(camera.rotation());
 
             float scale = 0.025f;
             poseStack.scale(scale, -scale, scale);
